@@ -1,0 +1,37 @@
+title: Log Dissector
+@echo off
+:fileName
+cls
+echo Welcome to the Wireshark log dissector
+echo:
+
+set /p file="Enter in the file name: "
+
+tshark -r %file% -T fields -e frame.number -e ip.src -e ip.dst -e eth.src -e eth.dst -e tcp.srcport -e tcp.dstport -e udp.srcport -e udp.dstport -e _ws.col.Protocol -e _ws.col.Info -E header=y -E quote=d -E separator=/, -E separator=, > packetListPane.csv
+
+tshark -q -r %file% -z conv,eth > conversations.txt
+tshark -q -r %file% -z conv,ip >> conversations.txt
+tshark -q -r %file% -z conv,ipv6 >> conversations.txt
+tshark -q -r %file% -z conv,tcp >> conversations.txt
+tshark -q -r %file% -z conv,udp >> conversations.txt
+
+tshark -q -r %file% -z flow,any,standard > flow.txt
+
+echo column one: total number of frames
+echo column two: total number of HTTP filtered frames
+echo column three: total number of DNS filtered frames
+echo column four: total number of TCP filtered frames
+echo column five: total number of ARP filtered frames
+echo column six: total number of UDP filtered frames
+echo column seven: total number of three-way handshake frames
+
+tshark -q -r %file% -z io,stat,0,,"FRAMES()http","FRAMES()dns","FRAMES()tcp","FRAMES()arp","FRAMES()udp","FRAMES()tcp.port==80 and tcp.flags==0x012"
+
+echo.
+echo Enter Y for yes or anything else for no
+echo:
+
+set /p choice="Do you want to enter another file?"
+
+if "%choice%"=="y" goto fileName
+if "%choice%"=="Y" goto fileName
